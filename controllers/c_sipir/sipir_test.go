@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"mini_project/config"
+	msel "mini_project/models/m_sel"
 	msipir "mini_project/models/m_sipir"
+	ssel "mini_project/service/s_sel"
+	ssipir "mini_project/service/s_sipir"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -30,16 +33,31 @@ func TestGetAll_Success(t *testing.T) {
 		expectedBodyStartsWith string
 	}{{
 		name:                   "success",
-		path:                   "/sipir/get_all",
+		path:                   "/sel/get_all",
 		expectedStatus:         http.StatusOK,
-		expectedBodyStartsWith: "{\"status\":",
+		expectedBodyStartsWith: "[{\"id\":",
 	},
 	}
 
 	e := InitEcho()
 
-	req := httptest.NewRequest(http.MethodGet, "/sipir/get_all", nil)
+	// create sipir data
+	sipirService := ssipir.NewSipir()
+	sipir := sipirService.Create(msipir.Input{
+		Nama:    "test",
+		Jabatan: "test",
+	})
+
+	// create sel data
+	selService := ssel.NewSel()
+	selService.Create(msel.Input{
+		NoSel:   12,
+		SipirID: sipir.ID,
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/sel/get_all", nil)
 	rec := httptest.NewRecorder()
+
 	c := e.NewContext(req, rec)
 
 	for _, testCase := range testCases {
@@ -62,23 +80,30 @@ func TestCreate_Success(t *testing.T) {
 		expectedBodyStartsWith string
 	}{{
 		name:                   "success",
-		path:                   "/sipir/create",
+		path:                   "/sel/create",
 		expectedStatus:         http.StatusOK,
-		expectedBodyStartsWith: "{\"status\":",
+		expectedBodyStartsWith: "{\"id\":",
 	},
 	}
 
 	e := InitEcho()
 
-	input := msipir.Input{
-		Nama:    "tes",
-		Jabatan: "tes",
+	// create sipir data
+	sipirService := ssipir.NewSipir()
+	sipir := sipirService.Create(msipir.Input{
+		Nama:    "test",
+		Jabatan: "test",
+	})
+
+	input := msel.Input{
+		NoSel:   1,
+		SipirID: sipir.ID,
 	}
 
 	jsonBody, _ := json.Marshal(&input)
 	bodyReader := bytes.NewReader(jsonBody)
 
-	req := httptest.NewRequest(http.MethodPost, "/sipir/create", bodyReader)
+	req := httptest.NewRequest(http.MethodPost, "/sel/create", bodyReader)
 	rec := httptest.NewRecorder()
 
 	req.Header.Add("Content-Type", "application/json")
@@ -89,7 +114,7 @@ func TestCreate_Success(t *testing.T) {
 		c.SetPath(testCase.path)
 
 		if assert.NoError(t, Create(c)) {
-			assert.Equal(t, http.StatusCreated, rec.Code)
+			assert.Equal(t, http.StatusAccepted, rec.Code)
 			body := rec.Body.String()
 
 			assert.True(t, strings.HasPrefix(body, testCase.expectedBodyStartsWith))
@@ -105,18 +130,30 @@ func TestGetByID_Success(t *testing.T) {
 		expectedBodyStartsWith string
 	}{{
 		name:                   "success",
-		path:                   "/sipir/get_by_id/:id",
+		path:                   "/sel/get_by_id/:id",
 		expectedStatus:         http.StatusOK,
-		expectedBodyStartsWith: "{\"status\":",
+		expectedBodyStartsWith: "{\"id\":",
 	},
 	}
 
 	e := InitEcho()
 
-	test := config.SeedSipir()
-	id := strconv.Itoa(int(test.ID))
+	sipirService := ssipir.NewSipir()
+	sipir := sipirService.Create(msipir.Input{
+		Nama:    "test",
+		Jabatan: "test",
+	})
 
-	req := httptest.NewRequest(http.MethodGet, "/sipir/get_by_id/:id", nil)
+	// create sel data
+	selService := ssel.NewSel()
+	sel := selService.Create(msel.Input{
+		NoSel:   12,
+		SipirID: sipir.ID,
+	})
+
+	id := strconv.Itoa(int(sel.ID))
+
+	req := httptest.NewRequest(http.MethodGet, "/sel/get_by_id/:id", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -142,7 +179,7 @@ func TesUpdate_Success(t *testing.T) {
 		expectedBodyStartsWith string
 	}{{
 		name:                   "success",
-		path:                   "/sipir/update/:id",
+		path:                   "/sel/update/:id",
 		expectedStatus:         http.StatusOK,
 		expectedBodyStartsWith: "{\"status\":",
 	},
@@ -150,19 +187,30 @@ func TesUpdate_Success(t *testing.T) {
 
 	e := InitEcho()
 
-	test := config.SeedSipir()
+	sipirService := ssipir.NewSipir()
+	sipir := sipirService.Create(msipir.Input{
+		Nama:    "test",
+		Jabatan: "test",
+	})
 
-	input := msipir.Input{
-		Nama:    "tes",
-		Jabatan: "tes",
+	// create sel data
+	selService := ssel.NewSel()
+	sel := selService.Create(msel.Input{
+		NoSel:   12,
+		SipirID: sipir.ID,
+	})
+
+	input := msel.Input{
+		NoSel:   2,
+		SipirID: sipir.ID,
 	}
 
 	jsonBody, _ := json.Marshal(&input)
 	bodyReader := bytes.NewReader(jsonBody)
 
-	id := strconv.Itoa(int(test.ID))
+	id := strconv.Itoa(int(sel.ID))
 
-	req := httptest.NewRequest(http.MethodPut, "/sipir/update/:id", bodyReader)
+	req := httptest.NewRequest(http.MethodPut, "/sel/update/:id", bodyReader)
 	rec := httptest.NewRecorder()
 
 	req.Header.Add("Content-Type", "application/json")
@@ -191,18 +239,30 @@ func TestDelete_Success(t *testing.T) {
 		expectedBodyStartsWith string
 	}{{
 		name:                   "success",
-		path:                   "/sipir/delete/:id",
+		path:                   "/sel/delete/:id",
 		expectedStatus:         http.StatusOK,
-		expectedBodyStartsWith: "{\"status\":",
+		expectedBodyStartsWith: "{\"messege\":",
 	},
 	}
 
 	e := InitEcho()
 
-	tes := config.SeedSipir()
-	id := strconv.Itoa(int(tes.ID))
+	sipirService := ssipir.NewSipir()
+	sipir := sipirService.Create(msipir.Input{
+		Nama:    "test",
+		Jabatan: "test",
+	})
 
-	req := httptest.NewRequest(http.MethodDelete, "/sipir/delete/:id", nil)
+	// create sel data
+	selService := ssel.NewSel()
+	sel := selService.Create(msel.Input{
+		NoSel:   12,
+		SipirID: sipir.ID,
+	})
+
+	id := strconv.Itoa(int(sel.ID))
+
+	req := httptest.NewRequest(http.MethodDelete, "/sel/delete/:id", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 

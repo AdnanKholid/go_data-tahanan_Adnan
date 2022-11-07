@@ -111,7 +111,9 @@ func Delete(c echo.Context) error {
 			"messege": "failed deleted",
 		})
 	}
-	return c.JSON(http.StatusNotFound, map[string]string{
+
+	// use http.StatusOK
+	return c.JSON(http.StatusOK, map[string]string{
 		"messege": "success deleted",
 	})
 }
