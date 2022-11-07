@@ -2,10 +2,10 @@ package config
 
 import (
 	"fmt"
+	"mini_project/helper"
 	msel "mini_project/models/m_sel"
 	msipir "mini_project/models/m_sipir"
 	mtahanan "mini_project/models/m_tahanan"
-	"os"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -16,9 +16,9 @@ var DB *gorm.DB
 func Connect() {
 	var err error
 	var dsn string = fmt.Sprintf("%s:%s@/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
+		helper.GetConfig("DB_USERNAME"),
+		helper.GetConfig("DB_PASSWORD"),
+		helper.GetConfig("DB_NAME"),
 	)
 
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -34,9 +34,9 @@ func Connect() {
 func InitTestDB() {
 	var err error
 	var dsn string = fmt.Sprintf("%s:%s@/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
+		helper.GetConfig("DB_USERNAME"),
+		helper.GetConfig("DB_PASSWORD"),
+		helper.GetConfig("DB_NAME"),
 	)
 
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
